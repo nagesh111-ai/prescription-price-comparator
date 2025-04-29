@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Saved Medicines{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="dashboard-header">
+        <h1>Saved Medicines</h1>
+        <a href="{{ url_for('price_comparison_page') }}" class="btn btn-primary">
+            <i class="fas fa-search"></i> Find More Medicines
+        </a>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Saved Medicines Table -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            {% if saved_prices %}
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Medicine</th>
+                            <th>Pharmacy</th>
+                            <th>Price</th>
+                            <th>Date Saved</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for price in saved_prices %}
+                            <tr>
+                                <td>{{ price.medicine_name }}</td>
+                                <td>{{ price.pharmacy_name }}</td>
+                                <td>₹{{ "%.2f"|format(price.price) }}</td>
+                                <td>{{ price.date_saved.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-danger delete-price" 
+                                            data-id="{{ price.id }}" 
+                                            data-medicine="{{ price.medicine_name }}">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-bookmark"></i>
+                    </div>
+                    <h3>No Saved Medicines</h3>
+                    <p>You haven't saved any medicine price information yet.</p>
+                    <a href="{{ url_for('price_comparison_page') }}" class="btn btn-primary">
+                        Search Medicine Prices
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add event listeners to delete buttons
+    document.querySelectorAll('.delete-price').forEach(button => {
+        button.addEventListener('click', function() {
+            const priceId = this.getAttribute('data-id');
+            const medicineName = this.getAttribute('data-medicine');
+            
+            if (confirm(`Are you sure you want to delete the saved medicine ${medicineName}?`)) {
+                deleteSavedPrice(priceId);
+            }
+        });
+    });
+    
+    function deleteSavedPrice(priceId) {
+        fetch(`/api/delete_saved_price/${priceId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Reload the page to show the updated list
+                window.location.reload();
+            } else {
+                alert(data.message || 'Error deleting saved medicine');
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error.message);
+        });
+    }
+});
+</script>
+{% endblock %} 

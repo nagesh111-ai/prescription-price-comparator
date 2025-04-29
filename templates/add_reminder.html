@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}Add Reminder - MediCare Assistant{% endblock %}
+
+{% block content %}
+<div class="reminder-form-container">
+    <div class="reminder-form">
+        <h2><i class="fas fa-plus-circle"></i> Add New Reminder</h2>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-circle' }}"></i>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form id="reminderForm" method="POST" action="{{ url_for('add_reminder') }}">
+            <div class="form-group">
+                <label for="medicine_name"><i class="fas fa-pills"></i> Medicine Name</label>
+                <input type="text" id="medicine_name" name="medicine_name" required 
+                       placeholder="Enter medicine name">
+            </div>
+            
+            <div class="form-group">
+                <label for="dosage"><i class="fas fa-weight"></i> Dosage</label>
+                <input type="text" id="dosage" name="dosage" required 
+                       placeholder="e.g., 1 tablet, 5ml">
+            </div>
+            
+            <div class="form-group">
+                <label for="reminder_time"><i class="fas fa-clock"></i> Reminder Time</label>
+                <input type="time" id="reminder_time" name="reminder_time" required
+                       {% if now %}value="{{ now.strftime('%H:%M') }}"{% else %}value="08:00"{% endif %}>
+                <small>Time is in 24-hour format (e.g., 13:00 for 1:00 PM)</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="frequency"><i class="fas fa-sync-alt"></i> Frequency</label>
+                <select id="frequency" name="frequency" required>
+                    <option value="">Select frequency</option>
+                    <option value="once">Once</option>
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                </select>
+            </div>
+            
+            <div class="form-group" id="daysGroup" style="display: none;">
+                <label><i class="fas fa-calendar-week"></i> Days of Week</label>
+                <div class="days-selector">
+                    <label class="day-checkbox">
+                        <input type="checkbox" name="days[]" value="monday"> Monday
+                    </label>
+                    <label class="day-checkbox">
+                        <input type="checkbox" name="days[]" value="tuesday"> Tuesday
+                    </label>
+                    <label class="day-checkbox">
+                        <input type="checkbox" name="days[]" value="wednesday"> Wednesday
+                    </label>
+                    <label class="day-checkbox">
+                        <input type="checkbox" name="days[]" value="thursday"> Thursday
+                    </label>
+                    <label class="day-checkbox">
+                        <input type="checkbox" name="days[]" value="friday"> Friday
+                    </label>
+                    <label class="day-checkbox">
+                        <input type="checkbox" name="days[]" value="saturday"> Saturday
+                    </label>
+                    <label class="day-checkbox">
+                        <input type="checkbox" name="days[]" value="sunday"> Sunday
+                    </label>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="start_date"><i class="fas fa-calendar-alt"></i> Start Date</label>
+                <input type="date" id="start_date" name="start_date" required 
+                       {% if now %}min="{{ now.strftime('%Y-%m-%d') }}" value="{{ now.strftime('%Y-%m-%d') }}"{% endif %}>
+            </div>
+            
+            <div class="form-group">
+                <label for="end_date"><i class="fas fa-calendar-times"></i> End Date</label>
+                <input type="date" id="end_date" name="end_date" required 
+                       {% if now %}min="{{ now.strftime('%Y-%m-%d') }}" value="{{ now.strftime('%Y-%m-%d') }}"{% endif %}>
+            </div>
+            
+            <div class="form-group">
+                <label for="alert_type"><i class="fas fa-volume-up"></i> Alert Type</label>
+                <select id="alert_type" name="alert_type" required>
+                    <option value="voice">Voice Alert</option>
+                    <option value="sound1">Bell Sound</option>
+                    <option value="sound2">Chime Sound</option>
+                    <option value="sound3">Beep Sound</option>
+                </select>
+                <small>Choose how you want to be alerted when it's time to take your medicine</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="alert_message"><i class="fas fa-comment"></i> Custom Message (Optional)</label>
+                <textarea id="alert_message" name="alert_message" placeholder="Add a custom message for your reminder" rows="2"></textarea>
+                <small>This message will be spoken for voice alerts</small>
+            </div>
+            
+            <button type="submit" class="btn-primary">
+                <i class="fas fa-save"></i> Save Reminder
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="sound-preview-container">
+    <h3>Preview Sounds</h3>
+    <div class="sound-preview-buttons">
+        <button onclick="previewSound('voice')" class="btn-preview"><i class="fas fa-play"></i> Voice</button>
+        <button onclick="previewSound('sound1')" class="btn-preview"><i class="fas fa-play"></i> Bell</button>
+        <button onclick="previewSound('sound2')" class="btn-preview"><i class="fas fa-play"></i> Chime</button>
+        <button onclick="previewSound('sound3')" class="btn-preview"><i class="fas fa-play"></i> Beep</button>
+    </div>
+</div>
+
+<script>
+    // Function to preview sounds
+    function previewSound(soundType) {
+        if (soundType === 'voice') {
+            // Preview voice alert using Web Speech API
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance();
+                const medicineName = document.getElementById('medicine_name').value || 'your medicine';
+                const dosage = document.getElementById('dosage').value || 'the prescribed dose';
+                const customMessage = document.getElementById('alert_message').value;
+                
+                utterance.text = customMessage || `Time to take ${medicineName}, ${dosage}`;
+                utterance.volume = 1;
+                utterance.rate = 1;
+                utterance.pitch = 1;
+                utterance.lang = 'en-US';
+                
+                window.speechSynthesis.speak(utterance);
+            } else {
+                alert('Sorry, your browser does not support speech synthesis.');
+            }
+        } else {
+            // Play pre-recorded sounds
+            const soundMap = {
+                'sound1': '/static/sounds/bell.mp3',
+                'sound2': '/static/sounds/chime.mp3',
+                'sound3': '/static/sounds/beep.mp3'
+            };
+            
+            const audio = new Audio(soundMap[soundType]);
+            audio.play().catch(e => {
+                console.error('Error playing sound:', e);
+                alert('Failed to play sound. Please ensure audio is enabled in your browser.');
+            });
+        }
+    }
+</script>
+{% endblock %} 

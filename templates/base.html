@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}MediCare Assistant{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+            <a href="{{ url_for('index') }}" class="logo">
+                <img src="{{ url_for('static', filename='images/medical-care.svg') }}" alt="MediCare Logo" class="logo-img">
+                MediCare Assistant
+            </a>
+            {% if current_user.is_authenticated %}
+            <ul class="nav-links">
+                <li><a href="{{ url_for('dashboard') }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="{{ url_for('add_reminder') }}"><i class="fas fa-plus"></i> Add Reminder</a></li>
+                <li><a href="{{ url_for('reminders') }}"><i class="fas fa-list"></i> Reminders</a></li>
+                <li><a href="{{ url_for('price_comparison_page') }}"><i class="fas fa-search-dollar"></i> Price Compare</a></li>
+                <li><a href="{{ url_for('saved_prices') }}"><i class="fas fa-bookmark"></i> Saved Medicines</a></li>
+                <li class="nav-item dropdown">
+                    <a href="{{ url_for('notifications') }}" class="notification-icon">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge" id="notification-count">0</span>
+                    </a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a href="#" class="profile-dropdown-toggle">
+                        <div class="profile-avatar">
+                            <span>{{ current_user.name[:1] }}</span>
+                        </div>
+                    </a>
+                    <div class="profile-dropdown-menu">
+                        <a href="{{ url_for('profile') }}"><i class="fas fa-user"></i> My Profile</a>
+                        <a href="{{ url_for('edit_profile') }}"><i class="fas fa-cog"></i> Settings</a>
+                        <div class="dropdown-divider"></div>
+                        <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    </div>
+                </li>
+            </ul>
+            {% else %}
+            <ul class="nav-links">
+                <li><a href="#" onclick="showLogin()"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+                <li><a href="#" onclick="showSignup()"><i class="fas fa-user-plus"></i> Sign Up</a></li>
+            </ul>
+            {% endif %}
+        </div>
+    </nav>
+
+    <main>
+        <div class="container">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('loginModal')">&times;</span>
+            <h2 class="modal-title"><i class="fas fa-sign-in-alt"></i> Login</h2>
+            <form id="loginForm" method="POST" action="{{ url_for('login') }}">
+                <div class="form-control">
+                    <label for="email"><i class="fas fa-envelope"></i> Email</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-control">
+                    <label for="password"><i class="fas fa-lock"></i> Password</label>
+                    <input type="password" id="password" name="password" required>
+                    <div class="password-strength"></div>
+                </div>
+                <button type="submit" class="btn">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Signup Modal -->
+    <div id="signupModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('signupModal')">&times;</span>
+            <h2 class="modal-title"><i class="fas fa-user-plus"></i> Sign Up</h2>
+            <form id="signupForm" method="POST" action="{{ url_for('register') }}">
+                <div class="form-control">
+                    <label for="signup-name"><i class="fas fa-user"></i> Full Name</label>
+                    <input type="text" id="signup-name" name="name" required>
+                </div>
+                <div class="form-control">
+                    <label for="signup-email"><i class="fas fa-envelope"></i> Email</label>
+                    <input type="email" id="signup-email" name="email" required>
+                </div>
+                <div class="form-control">
+                    <label for="signup-password"><i class="fas fa-lock"></i> Password</label>
+                    <input type="password" id="signup-password" name="password" required>
+                    <div class="password-strength"></div>
+                </div>
+                <button type="submit" class="btn">Sign Up</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html> 

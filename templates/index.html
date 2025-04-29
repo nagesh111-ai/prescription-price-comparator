@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}MediCare Assistant{% endblock %}
+
+{% block content %}
+<div class="landing-container">
+    <div class="hero-section">
+        <div class="hero-content">
+            <h1>MediCare <span class="text-gradient">Assistant</span></h1>
+            <p class="slogan">Your personal medicine reminder assistant that helps you never miss a dose</p>
+            <div class="hero-features">
+                <div class="hero-feature"><i class="fas fa-bell"></i> Smart Reminders</div>
+                <div class="hero-feature"><i class="fas fa-volume-up"></i> Voice Alerts</div>
+                <div class="hero-feature"><i class="fas fa-search-dollar"></i> Price Comparison</div>
+            </div>
+            <div class="cta-buttons">
+                <button class="btn-primary pulse-animation" onclick="showSignup()"><i class="fas fa-user-plus"></i> Get Started</button>
+                <button class="btn-secondary" onclick="showLogin()"><i class="fas fa-sign-in-alt"></i> Login</button>
+            </div>
+        </div>
+        <div class="hero-image">
+            <img src="{{ url_for('static', filename='images/medical-care.svg') }}" alt="Medical Care">
+        </div>
+    </div>
+
+    <div class="testimonials-section">
+        <h2>What Users Say About Us</h2>
+        <div class="testimonial-cards">
+            <div class="testimonial-card">
+                <div class="testimonial-quote">"MediCare Assistant transformed how I manage my medications. The reminders are timely and reliable!"</div>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar">SK</div>
+                    <div class="testimonial-info">
+                        <div class="testimonial-name">Sarah K.</div>
+                        <div class="testimonial-role">Patient with chronic conditions</div>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-quote">"As a healthcare professional, I recommend MediCare Assistant to all my patients. It significantly improves medication adherence."</div>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar">DR</div>
+                    <div class="testimonial-info">
+                        <div class="testimonial-name">Dr. Robert M.</div>
+                        <div class="testimonial-role">Cardiologist</div>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-quote">"The price comparison feature has saved me thousands of rupees on my prescriptions. This app is a game-changer!"</div>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar">AP</div>
+                    <div class="testimonial-info">
+                        <div class="testimonial-name">Aarav P.</div>
+                        <div class="testimonial-role">Senior citizen</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="features-section">
+        <h2>Features to help you stay healthy</h2>
+        <div class="feature-cards">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <h3>Medicine Reminders</h3>
+                <p>Set reminders for your medications and never miss a dose. Supports one-time, daily, and weekly schedules.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-search-dollar"></i>
+                </div>
+                <h3>Price Comparison</h3>
+                <p>Compare medication prices across different pharmacies and find the best deals to save money.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-history"></i>
+                </div>
+                <h3>History Tracking</h3>
+                <p>Keep track of your medication history and adherence with detailed reports and insights.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="how-it-works">
+        <h2>How It Works</h2>
+        <div class="steps">
+            <div class="step">
+                <div class="step-number">1</div>
+                <h3>Create an Account</h3>
+                <p>Sign up for a free account to get started with personalized care</p>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <h3>Add Your Medications</h3>
+                <p>Enter your medication details, dosage, and customize your schedule</p>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <h3>Get Reminders</h3>
+                <p>Receive timely reminders through notifications, voice alerts, or both</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="quote-section">
+        <div class="quote-container">
+            <i class="fas fa-quote-left quote-mark"></i>
+            <blockquote>
+                Taking medications on time is crucial for effective treatment. MediCare Assistant ensures that patients maintain their medication schedules and dramatically improves health outcomes.
+            </blockquote>
+            <cite>— Indian Journal of Medical Research</cite>
+        </div>
+    </div>
+    
+    <div class="cta-section">
+        <h2>Ready to take control of your medication schedule?</h2>
+        <p>Join thousands of users who trust MediCare Assistant for their daily health needs</p>
+        <button class="btn-primary pulse-animation" onclick="showSignup()"><i class="fas fa-user-plus"></i> Sign Up Now</button>
+    </div>
+</div>
+
+<!-- Login Modal -->
+<div id="loginModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('loginModal')">&times;</span>
+        <h2><i class="fas fa-sign-in-alt"></i> Welcome Back</h2>
+        <form id="loginForm" method="POST" action="{{ url_for('login') }}" class="auth-form">
+            <div class="form-group">
+                <label for="login-email"><i class="fas fa-envelope"></i> Email</label>
+                <input type="email" id="login-email" name="email" required placeholder="Enter your email">
+            </div>
+            <div class="form-group">
+                <label for="login-password"><i class="fas fa-lock"></i> Password</label>
+                <input type="password" id="login-password" name="password" required placeholder="Enter your password">
+            </div>
+            <button type="submit" class="btn-primary">Login</button>
+        </form>
+        <p class="auth-link">Don't have an account? <a href="#" onclick="showSignup()">Sign up here</a></p>
+    </div>
+</div>
+
+<!-- Signup Modal -->
+<div id="signupModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('signupModal')">&times;</span>
+        <h2><i class="fas fa-user-plus"></i> Create Your Account</h2>
+        <form id="signupForm" method="POST" action="{{ url_for('register') }}" class="auth-form">
+            <div class="form-group">
+                <label for="signup-name"><i class="fas fa-user"></i> Full Name</label>
+                <input type="text" id="signup-name" name="name" required placeholder="Enter your full name">
+            </div>
+            <div class="form-group">
+                <label for="signup-email"><i class="fas fa-envelope"></i> Email</label>
+                <input type="email" id="signup-email" name="email" required placeholder="Enter your email">
+            </div>
+            <div class="form-group">
+                <label for="signup-password"><i class="fas fa-lock"></i> Password</label>
+                <input type="password" id="signup-password" name="password" required placeholder="Create a password">
+                <div class="password-strength"></div>
+            </div>
+            <button type="submit" class="btn-primary">Sign Up</button>
+        </form>
+        <p class="auth-link">Already have an account? <a href="#" onclick="showLogin()">Login here</a></p>
+    </div>
+</div>
+{% endblock %} 

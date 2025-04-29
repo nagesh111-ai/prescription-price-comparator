@@ -1,0 +1,299 @@
+{% extends "base.html" %}
+
+{% block title %}Notifications - MediCare Assistant{% endblock %}
+
+{% block content %}
+<div class="notifications-container">
+    <div class="notifications-header">
+        <h1>Your Notifications</h1>
+        <a href="{{ url_for('reminders') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add New Reminder
+        </a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-circle' }}"></i>
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="notifications-filters">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="missed">Missed</button>
+        <button class="filter-btn" data-filter="upcoming">Upcoming</button>
+        <button class="filter-btn" data-filter="taken">Taken</button>
+    </div>
+
+    <div class="notification-list">
+        {% if notifications %}
+            {% for notification in notifications %}
+                <div class="notification-card {{ notification.status }}">
+                    <div class="notification-content">
+                        <div class="notification-icon {{ notification.status }}">
+                            {% if notification.status == 'missed' %}
+                                <i class="fas fa-bell-slash"></i>
+                            {% elif notification.status == 'upcoming' %}
+                                <i class="fas fa-clock"></i>
+                            {% else %}
+                                <i class="fas fa-check-circle"></i>
+                            {% endif %}
+                        </div>
+                        <div class="notification-details">
+                            <div class="notification-title">{{ notification.medicine_name }} - {{ notification.dosage }}</div>
+                            <div class="notification-meta">
+                                <div class="notification-time">
+                                    <i class="far fa-clock"></i> {{ notification.time }}
+                                </div>
+                                <div class="notification-date">
+                                    <i class="far fa-calendar-alt"></i> {{ notification.date }}
+                                </div>
+                            </div>
+                            <div class="notification-status {{ notification.status }}">
+                                {% if notification.status == 'missed' %}
+                                    Missed
+                                {% elif notification.status == 'upcoming' %}
+                                    Upcoming
+                                {% else %}
+                                    Taken
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Voice Toggle Switch -->
+                            <div class="voice-toggle-container">
+                                <span class="voice-toggle-label">Voice Alert:</span>
+                                <label class="voice-toggle">
+                                    <input type="checkbox" class="voice-toggle-input" data-id="{{ notification.id }}" 
+                                           {% if notification.voice_enabled %}checked{% endif %}>
+                                    <span class="voice-toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="notification-actions">
+                        {% if notification.status == 'missed' %}
+                            <button class="notification-action-btn reschedule-btn" data-id="{{ notification.id }}">
+                                <i class="fas fa-calendar-alt"></i> Reschedule
+                            </button>
+                            <div class="notification-divider"></div>
+                            <button class="notification-action-btn mark-taken-btn" data-id="{{ notification.id }}">
+                                <i class="fas fa-check"></i> Mark as Taken
+                            </button>
+                        {% elif notification.status == 'upcoming' %}
+                            <div class="snooze-dropdown">
+                                <button class="notification-action-btn snooze-btn">
+                                    <i class="fas fa-clock"></i> Snooze
+                                </button>
+                                <div class="snooze-dropdown-content">
+                                    <a href="#" class="snooze-option" data-id="{{ notification.id }}" data-minutes="5">5 minutes</a>
+                                    <a href="#" class="snooze-option" data-id="{{ notification.id }}" data-minutes="10">10 minutes</a>
+                                    <a href="#" class="snooze-option" data-id="{{ notification.id }}" data-minutes="15">15 minutes</a>
+                                    <a href="#" class="snooze-option" data-id="{{ notification.id }}" data-minutes="30">30 minutes</a>
+                                </div>
+                            </div>
+                            <div class="notification-divider"></div>
+                            <button class="notification-action-btn dismiss-btn" data-id="{{ notification.id }}">
+                                <i class="fas fa-times"></i> Dismiss
+                            </button>
+                        {% else %}
+                            <button class="notification-action-btn dismiss-btn" data-id="{{ notification.id }}">
+                                <i class="fas fa-times"></i> Dismiss
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-notifications">
+                <i class="fas fa-bell-slash"></i>
+                <h3>No Notifications</h3>
+                <p>You don't have any notifications at the moment.</p>
+                <a href="{{ url_for('add_reminder') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add New Reminder
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Filter notifications
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    const notificationCards = document.querySelectorAll('.notification-card');
+    
+    filterButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Remove active class from all buttons
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            
+            // Add active class to clicked button
+            this.classList.add('active');
+            
+            const filter = this.getAttribute('data-filter');
+            
+            // Show/hide notifications based on filter
+            notificationCards.forEach(card => {
+                if (filter === 'all' || card.classList.contains(filter)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    });
+    
+    // Voice Toggle
+    const voiceToggles = document.querySelectorAll('.voice-toggle-input');
+    
+    voiceToggles.forEach(toggle => {
+        toggle.addEventListener('change', function() {
+            const reminderId = this.getAttribute('data-id');
+            const enabled = this.checked;
+            
+            fetch('/toggle_voice_reminder/' + reminderId, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ enabled: enabled })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    // Revert toggle if error
+                    this.checked = !enabled;
+                    console.error('Error toggling voice reminder:', data.message);
+                }
+            })
+            .catch(error => {
+                // Revert toggle if error
+                this.checked = !enabled;
+                console.error('Error:', error);
+            });
+        });
+    });
+    
+    // Reschedule buttons
+    const rescheduleButtons = document.querySelectorAll('.reschedule-btn');
+    
+    rescheduleButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const reminderId = this.getAttribute('data-id');
+            window.location.href = '/edit_reminder/' + reminderId;
+        });
+    });
+    
+    // Mark as Taken buttons
+    const markTakenButtons = document.querySelectorAll('.mark-taken-btn');
+    
+    markTakenButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const reminderId = this.getAttribute('data-id');
+            
+            fetch('/mark_reminder_taken/' + reminderId, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Reload page to show updated status
+                    window.location.reload();
+                } else {
+                    console.error('Error marking reminder as taken:', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    });
+    
+    // Snooze options
+    const snoozeOptions = document.querySelectorAll('.snooze-option');
+    
+    snoozeOptions.forEach(option => {
+        option.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const reminderId = this.getAttribute('data-id');
+            const minutes = this.getAttribute('data-minutes');
+            
+            fetch('/snooze_reminder/' + reminderId, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ minutes: minutes })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show snooze confirmation
+                    alert(`Reminder snoozed for ${minutes} minutes.`);
+                    
+                    // Reload page to show updated status
+                    window.location.reload();
+                } else {
+                    console.error('Error snoozing reminder:', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    });
+    
+    // Dismiss buttons
+    const dismissButtons = document.querySelectorAll('.dismiss-btn');
+    
+    dismissButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const reminderId = this.getAttribute('data-id');
+            
+            fetch('/dismiss_notification/' + reminderId, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove the notification card
+                    this.closest('.notification-card').remove();
+                    
+                    // Check if there are no more notifications
+                    if (document.querySelectorAll('.notification-card').length === 0) {
+                        // Show empty state
+                        const emptyState = `
+                            <div class="empty-notifications">
+                                <i class="fas fa-bell-slash"></i>
+                                <h3>No Notifications</h3>
+                                <p>You don't have any notifications at the moment.</p>
+                                <a href="{{ url_for('add_reminder') }}" class="btn btn-primary">
+                                    <i class="fas fa-plus"></i> Add New Reminder
+                                </a>
+                            </div>
+                        `;
+                        document.querySelector('.notification-list').innerHTML = emptyState;
+                    }
+                } else {
+                    console.error('Error dismissing notification:', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    });
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Profile - MediCare Assistant{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1>Edit Profile</h1>
+    <a href="{{ url_for('profile') }}" class="btn secondary-btn">Back to Profile</a>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<div class="edit-profile-container">
+    <form method="POST" action="{{ url_for('edit_profile') }}" class="edit-profile-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        
+        <div class="form-section">
+            <h3>Personal Information</h3>
+            
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" name="name" value="{{ current_user.name }}" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" value="{{ current_user.email }}" required>
+            </div>
+            
+            <div class="password-section">
+                <div class="password-toggle">
+                    <input type="checkbox" id="change-password" name="change_password">
+                    <label for="change-password">Change Password</label>
+                </div>
+                
+                <div id="password-fields" class="hidden">
+                    <div class="form-group">
+                        <label for="current_password">Current Password</label>
+                        <input type="password" id="current_password" name="current_password">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="new_password">New Password</label>
+                        <input type="password" id="new_password" name="new_password">
+                        <div class="password-strength-meter">
+                            <div class="strength-bar"></div>
+                        </div>
+                        <div class="password-strength-text">Password strength: <span>Weak</span></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirm_password">Confirm New Password</label>
+                        <input type="password" id="confirm_password" name="confirm_password">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-section">
+            <h3>Notification Preferences</h3>
+            
+            <div class="form-group checkbox-group">
+                <input type="checkbox" id="email_notifications" name="email_notifications" {% if user_prefs.email_notifications %}checked{% endif %}>
+                <label for="email_notifications">Email Notifications</label>
+                <p class="checkbox-description">Receive email notifications for upcoming and missed medications</p>
+            </div>
+            
+            <div class="form-group checkbox-group">
+                <input type="checkbox" id="voice_alerts" name="voice_alerts" {% if user_prefs.voice_alerts %}checked{% endif %}>
+                <label for="voice_alerts">Voice Alerts</label>
+                <p class="checkbox-description">Enable voice reminders when it's time to take your medication</p>
+            </div>
+            
+            <div class="form-group checkbox-group">
+                <input type="checkbox" id="desktop_notifications" name="desktop_notifications" {% if user_prefs.desktop_notifications %}checked{% endif %}>
+                <label for="desktop_notifications">Desktop Notifications</label>
+                <p class="checkbox-description">Receive browser notifications for reminders when you're online</p>
+                <button type="button" id="test-notification-btn" class="btn small-btn">Test Notification</button>
+            </div>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn primary-btn">Save Changes</button>
+            <a href="{{ url_for('profile') }}" class="btn cancel-btn">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Toggle password change fields
+        const changePasswordCheckbox = document.getElementById('change-password');
+        const passwordFields = document.getElementById('password-fields');
+        
+        changePasswordCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                passwordFields.classList.remove('hidden');
+            } else {
+                passwordFields.classList.add('hidden');
+            }
+        });
+        
+        // Password strength meter
+        const newPasswordInput = document.getElementById('new_password');
+        const strengthBar = document.querySelector('.strength-bar');
+        const strengthText = document.querySelector('.password-strength-text span');
+        
+        newPasswordInput.addEventListener('input', function() {
+            const password = this.value;
+            const strength = calculatePasswordStrength(password);
+            
+            // Update strength bar
+            strengthBar.style.width = strength.percentage + '%';
+            strengthBar.className = 'strength-bar ' + strength.level;
+            
+            // Update strength text
+            strengthText.textContent = strength.level.charAt(0).toUpperCase() + strength.level.slice(1);
+        });
+        
+        function calculatePasswordStrength(password) {
+            // Simple password strength calculation
+            let strength = 0;
+            
+            if (password.length > 6) strength += 1;
+            if (password.length > 10) strength += 1;
+            if (/[A-Z]/.test(password)) strength += 1;
+            if (/[0-9]/.test(password)) strength += 1;
+            if (/[^A-Za-z0-9]/.test(password)) strength += 1;
+            
+            const percentage = (strength / 5) * 100;
+            let level = 'weak';
+            
+            if (strength >= 3) level = 'medium';
+            if (strength >= 4) level = 'strong';
+            
+            return {
+                level: level,
+                percentage: percentage
+            };
+        }
+        
+        // Test notification
+        const testNotificationBtn = document.getElementById('test-notification-btn');
+        
+        testNotificationBtn.addEventListener('click', function() {
+            // Check if browser supports notifications
+            if (!("Notification" in window)) {
+                alert("This browser does not support desktop notifications");
+                return;
+            }
+            
+            // Request permission and show test notification
+            Notification.requestPermission().then(function(permission) {
+                if (permission === "granted") {
+                    const notification = new Notification("Test Medication Reminder", {
+                        body: "This is a test notification from MediCare Assistant",
+                        icon: "/static/images/logo.png"
+                    });
+                    
+                    // Close the notification after 5 seconds
+                    setTimeout(function() {
+                        notification.close();
+                    }, 5000);
+                }
+            });
+        });
+        
+        // Password confirmation validation
+        const confirmPasswordInput = document.getElementById('confirm_password');
+        const form = document.querySelector('.edit-profile-form');
+        
+        form.addEventListener('submit', function(event) {
+            if (changePasswordCheckbox.checked) {
+                const newPassword = newPasswordInput.value;
+                const confirmPassword = confirmPasswordInput.value;
+                
+                if (newPassword !== confirmPassword) {
+                    event.preventDefault();
+                    alert("Passwords do not match. Please try again.");
+                }
+            }
+        });
+    });
+</script>
+{% endblock %} 

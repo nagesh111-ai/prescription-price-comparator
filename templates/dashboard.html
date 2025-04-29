@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - MediCare Assistant{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Personalized Greeting Section -->
+    <div class="greeting-section">
+        <h1>Hello, {{ current_user.name.split(' ')[0] }} 👋</h1>
+        <p>Welcome to your MediCare dashboard. Here's a quick overview of your account.</p>
+    </div>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-circle' }}"></i>
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Action Cards Section -->
+    <div class="card-container">
+        <div class="dashboard-card">
+            <div class="dashboard-card-header">
+                <div class="dashboard-card-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="dashboard-card-title">Set a Medicine Reminder</div>
+            </div>
+            <p class="dashboard-card-description">Never miss a dose by setting up reminders for your medications.</p>
+            <a href="{{ url_for('add_reminder') }}" class="btn-primary dashboard-card-action">
+                <i class="fas fa-plus"></i> Add New Reminder
+            </a>
+        </div>
+        
+        <div class="dashboard-card">
+            <div class="dashboard-card-header">
+                <div class="dashboard-card-icon">
+                    <i class="fas fa-coins"></i>
+                </div>
+                <div class="dashboard-card-title">Compare Medicine Prices</div>
+            </div>
+            <p class="dashboard-card-description">Find the best prices for your medications at different pharmacies.</p>
+            <a href="{{ url_for('price_comparison_page') }}" class="btn-secondary dashboard-card-action">
+                <i class="fas fa-search-dollar"></i> Compare Prices
+            </a>
+        </div>
+    </div>
+
+    <!-- Recent Activity Section -->
+    <div class="activity-section">
+        <h2>Recent Activity</h2>
+        
+        <div class="activity-cards">
+            <div class="activity-card">
+                <div class="activity-icon">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <div class="activity-content">
+                    <h3>Active Reminders</h3>
+                    <p>You have {{ reminders|selectattr('is_active', 'eq', True)|list|length }} active reminders.</p>
+                    <a href="{{ url_for('reminders') }}" class="activity-link">View all reminders</a>
+                </div>
+            </div>
+            
+            <div class="activity-card">
+                <div class="activity-icon">
+                    <i class="fas fa-tags"></i>
+                </div>
+                <div class="activity-content">
+                    <h3>Price Checks</h3>
+                    <p>Compare prices across multiple pharmacies.</p>
+                    <a href="{{ url_for('price_comparison_page') }}" class="activity-link">Compare medicine prices</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Reminders Section -->
+    <div class="recent-reminders-section">
+        <div class="section-header">
+            <h2>Your Medication Reminders</h2>
+            <a href="{{ url_for('reminders') }}" class="btn-text">View All</a>
+        </div>
+
+        {% if reminders %}
+            <div class="reminder-list">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Medicine</th>
+                            <th>Dosage</th>
+                            <th>Time</th>
+                            <th>Frequency</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for reminder in reminders[:3] %}
+                        <tr class="{{ 'inactive' if not reminder.is_active }}">
+                            <td><strong>{{ reminder.medicine_name }}</strong></td>
+                            <td>{{ reminder.dosage }}</td>
+                            <td>{{ reminder.reminder_time }}</td>
+                            <td>{{ reminder.frequency.capitalize() }}
+                                {% if reminder.frequency == 'weekly' and reminder.days %}
+                                    <span class="days-info">({{ reminder.days.replace(',', ', ') }})</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="status-badge {{ 'active' if reminder.is_active else 'inactive' }}">
+                                    {{ 'Active' if reminder.is_active else 'Inactive' }}
+                                </span>
+                            </td>
+                            <td class="actions">
+                                {% if reminder.is_active %}
+                                    <button type="button" class="btn-toggle" onclick="toggleReminder('{{ reminder.id }}')">
+                                        <i class="fas fa-pause"></i>
+                                    </button>
+                                {% else %}
+                                    <button type="button" class="btn-toggle" onclick="toggleReminder('{{ reminder.id }}')">
+                                        <i class="fas fa-play"></i>
+                                    </button>
+                                {% endif %}
+                                <a href="{{ url_for('edit_reminder', id=reminder.id) }}" class="btn-edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button type="button" class="btn-delete" onclick="deleteReminder('{{ reminder.id }}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-bell-slash"></i>
+                <p>You don't have any reminders yet.</p>
+                <a href="{{ url_for('add_reminder') }}" class="btn-primary">Add Your First Reminder</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Preloaded Audio Elements (hidden) -->
+<div style="display: none;">
+    <audio id="bell-sound" preload="auto">
+        <source src="{{ url_for('static', filename='sounds/bell.mp3') }}" type="audio/mpeg">
+    </audio>
+    <audio id="chime-sound" preload="auto">
+        <source src="{{ url_for('static', filename='sounds/chime.mp3') }}" type="audio/mpeg">
+    </audio>
+    <audio id="beep-sound" preload="auto">
+        <source src="{{ url_for('static', filename='sounds/beep.mp3') }}" type="audio/mpeg">
+    </audio>
+</div>
+{% endblock %} 

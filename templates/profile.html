@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile - MediCare Assistant{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1>My Profile</h1>
+    <a href="{{ url_for('edit_profile') }}" class="btn primary-btn">Edit Profile</a>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<div class="profile-container">
+    <div class="profile-section user-info">
+        <div class="profile-avatar">
+            <div class="avatar-placeholder">{{ current_user.name[:1] }}</div>
+        </div>
+        <div class="user-details">
+            <h2>{{ current_user.name }}</h2>
+            <p>{{ current_user.email }}</p>
+        </div>
+    </div>
+    
+    <div class="profile-section stats-section">
+        <h3>My Medication Statistics</h3>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-number">{{ total_reminders }}</span>
+                <span class="stat-label">Total Reminders</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">{{ active_reminders }}</span>
+                <span class="stat-label">Active Reminders</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">{{ missed_reminders }}</span>
+                <span class="stat-label">Missed Reminders</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="profile-section preferences-section">
+        <h3>Notification Preferences</h3>
+        <div class="preference-items">
+            <div class="preference-item">
+                <span class="preference-label">Email Notifications</span>
+                <span class="preference-status {% if user_prefs.email_notifications %}enabled{% else %}disabled{% endif %}">
+                    {% if user_prefs.email_notifications %}Enabled{% else %}Disabled{% endif %}
+                </span>
+            </div>
+            <div class="preference-item">
+                <span class="preference-label">Voice Alerts</span>
+                <span class="preference-status {% if user_prefs.voice_alerts %}enabled{% else %}disabled{% endif %}">
+                    {% if user_prefs.voice_alerts %}Enabled{% else %}Disabled{% endif %}
+                </span>
+            </div>
+            <div class="preference-item">
+                <span class="preference-label">Desktop Notifications</span>
+                <span class="preference-status {% if user_prefs.desktop_notifications %}enabled{% else %}disabled{% endif %}">
+                    {% if user_prefs.desktop_notifications %}Enabled{% else %}Disabled{% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="profile-section recent-activity">
+        <h3>Recent Activity</h3>
+        {% if recent_activities %}
+            <div class="activity-list">
+                {% for activity in recent_activities %}
+                    <div class="activity-item">
+                        {% if activity.type == 'reminder_added' %}
+                            <span class="activity-icon add-icon">+</span>
+                            <div class="activity-details">
+                                <span class="activity-title">Added {{ activity.medicine }} reminder</span>
+                                <span class="activity-time">{{ activity.time.strftime('%b %d, %Y at %I:%M %p') }}</span>
+                            </div>
+                        {% elif activity.type == 'reminder_taken' %}
+                            <span class="activity-icon taken-icon">✓</span>
+                            <div class="activity-details">
+                                <span class="activity-title">Took {{ activity.medicine }}</span>
+                                <span class="activity-time">{{ activity.time.strftime('%b %d, %Y at %I:%M %p') }}</span>
+                            </div>
+                        {% elif activity.type == 'medicine_saved' %}
+                            <span class="activity-icon save-icon">♥</span>
+                            <div class="activity-details">
+                                <span class="activity-title">Saved {{ activity.medicine }} to favorites</span>
+                                <span class="activity-time">{{ activity.time.strftime('%b %d, %Y at %I:%M %p') }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="no-activities">No recent activities to display</p>
+        {% endif %}
+    </div>
+    
+    <div class="action-buttons">
+        <a href="{{ url_for('dashboard') }}" class="btn secondary-btn">Back to Dashboard</a>
+        <a href="{{ url_for('notifications') }}" class="btn primary-btn">Manage Notifications</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add any profile-specific JavaScript here
+    });
+</script>
+{% endblock %} 

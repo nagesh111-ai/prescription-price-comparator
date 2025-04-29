@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Medicine Price Comparison - India{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/price_comparison.css') }}">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    .medicine-icon {
+        margin-right: 8px;
+        color: #2563EB;
+    }
+    
+    .price-comparison-container {
+        position: relative;
+        font-family: 'Poppins', sans-serif;
+    }
+    
+    .medicine-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #E5E7EB;
+    }
+    
+    .medicine-header img {
+        width: 70px;
+        height: 70px;
+        margin-right: 20px;
+    }
+    
+    .medicine-header-content h1 {
+        margin: 0 0 5px 0;
+    }
+    
+    .medicine-header-content p {
+        margin: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="price-comparison-container">
+    <div class="medicine-header">
+        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjMjU2M0VCIiBkPSJNNDIyLjY3IDQyMi43Yy0xOS4zNiAyMC40NC00Ni41MiAzMS40MS03NS41NSAzMS40MS0zMC4yMyAwLTU3LjI0LTEyLjA5LTc4LjE3LTM0Ljg3LTQuNzkgMi42My05LjgzIDQuMDMtMTQuOTUgNC4wM2gtMjRjLTEyLjEzIDAtMjIuMTgtOC44My0yMi43NS0yMC43NS0uMS0yLjM2LS40OC00LjY2LS45OC02Ljg5LTEuMTctNS4xOS0zLjFjLTMuMjUtMTMuMTUtMTQuNDItMjIuOTEtMjguNjItMjIuOTFIMTI4VjMzNmgtMTZjLTguODQgMC0xNi03LjE2LTE2LTE2VjI4OGMwLTguODQgNy4xNi0xNiAxNi0xNmgxNnYtMzYuNDVjMC00MCwzMi41NS03Mi41NSA3Mi41NS03Mi41NWg3MS43NWM5LjA0IDAgMTcuNzEgMy41NSAyNC4xNyA5Ljg4bDIyLjQ5IDIyLjExYzEzLjQyIDEzLjE2IDM0LjgxIDEzLjE1IDQ4LjIxIDBsMjEuMjUtMjAuODJjNi41Mi02LjM4IDE1LjI1LTkuODQgMjQuMjQtOS45LDQuMzYgMCA4Ljc0Ljg1IDEyLjg2IDIuNTUgNy4yMiAyLjk3IDEzLjIxIDguOTcgMTYuMTQgMTYuMTdDNDg3LjA2IDIxNS42NyA1MTIgMjY0LjU4IDUxMiAzMjBjMCAzOS4wOC0xMi40OCA3NC45NS0zMy42NSA5OS4zNWwtNTUuNjggMy4zNVpNMzQwLjg5IDU2Ljk4bDItMS41NmMxNC45Mi0xMC45OCAzMi40LTE1LjkzIDQ5LjkyLTEzLjk4IDIzLjkyIDIuMzYgNDUuMzIgMTUuNzUgNTcuODcgMzUuODYgMTMuMTQgMjEuMDMgMTUuNiA0Ny44OCA2LjU4IDcxLjVhNzkuODA3IDc5LjgwNyAwIDAgMS0xOS4yOSAyOS44NGMtMTAuODIgMTAuNi0yOC42IDkuMzU5LTM3Ljk2LTIuMzhsLTQ1LjUyLTU2LjlDMzM5Ljk3IDEwMC42NiAzMzAuMzkgNzcuMiAzNDAuODkgNTYuOThaTTIyIDc3LjRsMTU2LjYgMTk1LjhjNS40IDYuNzcgNC4zIDE2LjcxLTIuNDQgMjIuMTQtMi44MyAyLjI3LTYuMjUgMy4zNy05LjYzIDMuMzctMy4zIDAtNi42My0xLjA2LTkuNDQtMy4yM2wtMjMuNTgtMTguMjdBODguMTggODguMTggMCAwIDAtOTIuODMgMjYyLjgzVjE2MGMwLTcuNy41NC0xNS4yMiAxLjU4LTI0LjY2QzIuNTIgNTYgNjUuNjcgMCAxNDQgMGMxOCAwIDM1LjEzIDMuMTggNTEuMDggOC45OSAxNC42NiA1LjMzIDIwLjY1IDIyLjc2IDExLjk4IDM1LjI5TDIyIDc3LjRaIi8+PC9zdmc+" alt="Medicine Icon">
+        <div class="medicine-header-content">
+            <h1>Medicine Price Comparison</h1>
+            <p class="lead">Find affordable options for your prescriptions across India</p>
+        </div>
+    </div>
+    
+    <!-- Search Form -->
+    <div class="search-form-container">
+        <h2 class="search-form-title">Search Medication Prices</h2>
+        <form id="price-comparison-form">
+            <div class="form-row">
+                <div class="form-group search-input">
+                    <label for="medicine-name"><i class="fas fa-capsules medicine-icon"></i> Medicine Name:</label>
+                    <input type="text" id="medicine-name" name="medicine_name" class="form-control" 
+                           placeholder="Enter medicine name (e.g., Crocin, Allegra)" required>
+                </div>
+                <div class="form-group search-input">
+                    <label for="location"><i class="fas fa-map-marker-alt medicine-icon"></i> City (optional):</label>
+                    <input type="text" id="location" name="location" class="form-control" 
+                           placeholder="City name (e.g., Bangalore, Mumbai)">
+                </div>
+            </div>
+            <button type="submit" class="search-btn">
+                <i class="fas fa-search"></i> Find Prices
+            </button>
+        </form>
+    </div>
+    
+    <!-- Results Section -->
+    <div id="results-container" class="results-section">
+        <div id="search-summary" class="search-summary">
+            <i class="fas fa-info-circle medicine-icon"></i> <span id="summary-text"></span>
+        </div>
+        
+        <!-- Loading Spinner -->
+        <div id="loading-spinner" class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Searching for best prices across Indian pharmacies...</p>
+        </div>
+        
+        <!-- Results Table Container -->
+        <div id="results-table-container"></div>
+    </div>
+    
+    <!-- Notification Container -->
+    <div id="notification-container" class="notification-container"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/price_comparison.js') }}"></script>
+{% endblock %} 
