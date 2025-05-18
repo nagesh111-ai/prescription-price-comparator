@@ -1,0 +1,130 @@
+<!-- Theme Settings Panel Component -->
+<div class="theme-settings-panel" id="theme-settings-panel">
+    <div class="theme-settings-header">
+        <h3>Appearance Settings</h3>
+        <button aria-label="Close settings" class="close-button" id="close-theme-settings">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    
+    <div class="theme-settings-body">
+        <!-- Color Theme Section -->
+        <section class="settings-section">
+            <h4>Color Theme</h4>
+            
+            <!-- Light/Dark Mode Toggle -->
+            <div class="settings-option toggle-container">
+                <label for="theme-toggle">Dark Mode</label>
+                <div class="toggle-switch">
+                    <input type="checkbox" id="theme-toggle">
+                    <span class="toggle-slider"></span>
+                </div>
+            </div>
+            
+            <!-- Theme Color Options -->
+            <div class="theme-selector">
+                <div class="theme-option" data-theme="blue">
+                    <div class="color-preview blue-theme"></div>
+                    <span>Blue</span>
+                </div>
+                <div class="theme-option" data-theme="green">
+                    <div class="color-preview green-theme"></div>
+                    <span>Green</span>
+                </div>
+                <div class="theme-option" data-theme="purple">
+                    <div class="color-preview purple-theme"></div>
+                    <span>Purple</span>
+                </div>
+                <div class="theme-option" data-theme="red">
+                    <div class="color-preview red-theme"></div>
+                    <span>Red</span>
+                </div>
+                <div class="theme-option" data-theme="orange">
+                    <div class="color-preview orange-theme"></div>
+                    <span>Orange</span>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Accessibility Section -->
+        <section class="settings-section">
+            <h4>Accessibility</h4>
+            
+            <!-- Font Size Controls -->
+            <div class="settings-option font-size-controls">
+                <label>Text Size</label>
+                <div class="font-size-buttons">
+                    <button id="decrease-font" aria-label="Decrease font size">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <span id="font-size-value">100%</span>
+                    <button id="increase-font" aria-label="Increase font size">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Contrast Option -->
+            <div class="settings-option">
+                <label>Contrast</label>
+                <div class="button-group">
+                    <button class="theme-option" data-theme="low-contrast">Low</button>
+                    <button class="theme-option active" data-theme="blue">Normal</button>
+                    <button class="theme-option" data-theme="high-contrast">High</button>
+                </div>
+            </div>
+            
+            <!-- Animations Toggle -->
+            <div class="settings-option toggle-container">
+                <label for="animations-toggle">Enable Animations</label>
+                <div class="toggle-switch">
+                    <input type="checkbox" id="animations-toggle" checked>
+                    <span class="toggle-slider"></span>
+                </div>
+            </div>
+        </section>
+    </div>
+    
+    <div class="theme-settings-footer">
+        <button id="reset-settings" class="secondary-button">Reset to Defaults</button>
+    </div>
+</div>
+
+<!-- Theme Settings Toggle Button (to be placed in app layout) -->
+<button id="open-theme-settings" class="theme-settings-button" aria-label="Theme settings">
+    <i class="fas fa-palette"></i>
+</button>
+
+<!-- Script to handle panel open/close -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const openButton = document.getElementById('open-theme-settings');
+        const closeButton = document.getElementById('close-theme-settings');
+        const panel = document.getElementById('theme-settings-panel');
+        const resetButton = document.getElementById('reset-settings');
+        
+        // Open settings panel
+        openButton.addEventListener('click', function() {
+            panel.classList.add('active');
+        });
+        
+        // Close settings panel
+        closeButton.addEventListener('click', function() {
+            panel.classList.remove('active');
+        });
+        
+        // Reset to defaults
+        resetButton.addEventListener('click', function() {
+            if (window.themeManager) {
+                window.themeManager.resetToDefaults();
+            }
+        });
+        
+        // Close when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!panel.contains(event.target) && event.target !== openButton) {
+                panel.classList.remove('active');
+            }
+        });
+    });
+</script> 

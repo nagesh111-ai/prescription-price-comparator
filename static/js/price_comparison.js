@@ -8,6 +8,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultsTableContainer = document.getElementById('results-table-container');
     const notificationContainer = document.getElementById('notification-container');
     
+    // Function to get CSRF token
+    function getCSRFToken() {
+        const token = document.querySelector('meta[name="csrf-token"]');
+        if (token) {
+            return token.getAttribute('content');
+        }
+        return null;
+    }
+    
     // Store the last search to avoid unnecessary API calls
     let lastSearch = {
         medicineName: '',
@@ -59,13 +68,22 @@ document.addEventListener('DOMContentLoaded', function() {
     function fetchPriceComparison(medicineName, location) {
         // Add timestamp to prevent caching
         const timestamp = new Date().getTime();
+        const csrfToken = getCSRFToken();
+        
+        // Prepare headers with CSRF token
+        const headers = {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache',
+            'X-Requested-With': 'XMLHttpRequest'
+        };
+        
+        if (csrfToken) {
+            headers['X-CSRFToken'] = csrfToken;
+        }
         
         fetch(`/api/price_comparison?t=${timestamp}`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Cache-Control': 'no-cache'
-            },
+            headers: headers,
             body: JSON.stringify({
                 medicine_name: medicineName,
                 location: location || 'Unknown'
@@ -205,12 +223,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function saveResult(medicineName, pharmacyName, price, medicineType) {
+        const csrfToken = getCSRFToken();
+        
+        // Prepare headers with CSRF token
+        const headers = {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache',
+            'X-Requested-With': 'XMLHttpRequest'
+        };
+        
+        if (csrfToken) {
+            headers['X-CSRFToken'] = csrfToken;
+        }
+        
         fetch('/api/save_price_result', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Cache-Control': 'no-cache'
-            },
+            headers: headers,
             body: JSON.stringify({
                 medicine_name: medicineName,
                 pharmacy_name: pharmacyName,

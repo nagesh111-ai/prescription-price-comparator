@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Error - MediCare Assistant{% endblock %}
+
+{% block content %}
+<div class="error-container">
+    <div class="error-message">
+        <i class="fas fa-exclamation-circle"></i>
+        <h2>An Error Occurred</h2>
+        <p>{{ message }}</p>
+        <div class="error-actions">
+            <a href="{{ url_for('index') }}" class="btn primary-btn">Go to Home</a>
+            <button onclick="window.history.back()" class="btn secondary-btn">Go Back</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .error-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 70vh;
+    }
+    
+    .error-message {
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+        text-align: center;
+        max-width: 600px;
+        width: 100%;
+    }
+    
+    .error-message i {
+        font-size: 4rem;
+        color: #e74c3c;
+        margin-bottom: 1rem;
+    }
+    
+    .error-message h2 {
+        color: #333;
+        margin-bottom: 1rem;
+    }
+    
+    .error-message p {
+        color: #555;
+        margin-bottom: 2rem;
+    }
+    
+    .error-actions {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+    }
+</style>
+{% endblock %} 

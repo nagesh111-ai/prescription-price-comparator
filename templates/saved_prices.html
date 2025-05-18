@@ -22,53 +22,152 @@
         {% endif %}
     {% endwith %}
 
-    <!-- Saved Medicines Table -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            {% if saved_prices %}
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Medicine</th>
-                            <th>Pharmacy</th>
-                            <th>Price</th>
-                            <th>Date Saved</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for price in saved_prices %}
-                            <tr>
-                                <td>{{ price.medicine_name }}</td>
-                                <td>{{ price.pharmacy_name }}</td>
-                                <td>₹{{ "%.2f"|format(price.price) }}</td>
-                                <td>{{ price.date_saved.strftime('%Y-%m-%d %H:%M') }}</td>
-                                <td>
-                                    <button class="btn btn-sm btn-danger delete-price" 
-                                            data-id="{{ price.id }}" 
-                                            data-medicine="{{ price.medicine_name }}">
-                                        <i class="fas fa-trash"></i> Delete
-                                    </button>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            {% else %}
-                <div class="empty-state">
-                    <div class="empty-state-icon">
-                        <i class="fas fa-bookmark"></i>
+    <!-- Saved Medicines Cards -->
+    <div class="saved-medicines-container">
+        {% if saved_prices %}
+            <div class="medicine-cards">
+                {% for price in saved_prices %}
+                    <div class="medicine-card">
+                        <div class="medicine-name">{{ price.medicine_name }}</div>
+                        <div class="medicine-price">₹{{ "%.2f"|format(price.price) }}</div>
+                        <div class="medicine-pharmacy">
+                            <i class="fas fa-store"></i> {{ price.pharmacy_name }}
+                        </div>
+                        <div class="medicine-date">
+                            <i class="fas fa-calendar-alt"></i> {{ price.date_saved.strftime('%Y-%m-%d') }}
+                        </div>
+                        <button class="delete-btn delete-price" 
+                                data-id="{{ price.id }}" 
+                                data-medicine="{{ price.medicine_name }}">
+                            <i class="fas fa-trash"></i>
+                        </button>
                     </div>
-                    <h3>No Saved Medicines</h3>
-                    <p>You haven't saved any medicine price information yet.</p>
-                    <a href="{{ url_for('price_comparison_page') }}" class="btn btn-primary">
-                        Search Medicine Prices
-                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <i class="fas fa-bookmark"></i>
                 </div>
-            {% endif %}
-        </div>
+                <h3>No Saved Medicines</h3>
+                <p>You haven't saved any medicine price information yet.</p>
+                <a href="{{ url_for('price_comparison_page') }}" class="btn btn-primary">
+                    Search Medicine Prices
+                </a>
+            </div>
+        {% endif %}
     </div>
 </div>
+
+{% block extra_css %}
+<style>
+    .saved-medicines-container {
+        margin-top: 20px;
+    }
+    
+    .medicine-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+    
+    .medicine-card {
+        background-color: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        position: relative;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .medicine-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    }
+    
+    .medicine-name {
+        color: #333;
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 15px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+    }
+    
+    .medicine-price {
+        color: #e74c3c;
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 15px;
+    }
+    
+    .medicine-pharmacy, .medicine-date {
+        color: #666;
+        font-size: 14px;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .medicine-pharmacy i, .medicine-date i {
+        margin-right: 8px;
+        color: #3498db;
+    }
+    
+    .delete-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: transparent;
+        border: none;
+        color: #ccc;
+        font-size: 16px;
+        cursor: pointer;
+        transition: color 0.3s ease;
+    }
+    
+    .delete-btn:hover {
+        color: #e74c3c;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        background-color: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .empty-state-icon {
+        font-size: 48px;
+        color: #3498db;
+        margin-bottom: 20px;
+    }
+    
+    .empty-state h3 {
+        margin-bottom: 10px;
+        color: #333;
+    }
+    
+    .empty-state p {
+        color: #666;
+        margin-bottom: 20px;
+    }
+    
+    @media (max-width: 768px) {
+        .medicine-cards {
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .medicine-cards {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -85,11 +184,20 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     function deleteSavedPrice(priceId) {
+        // Get CSRF token from meta tag
+        const token = document.querySelector('meta[name="csrf-token"]');
+        const headers = {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        };
+        
+        if (token) {
+            headers['X-CSRFToken'] = token.getAttribute('content');
+        }
+        
         fetch(`/api/delete_saved_price/${priceId}`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            }
+            headers: headers
         })
         .then(response => response.json())
         .then(data => {

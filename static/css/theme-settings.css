@@ -1,0 +1,327 @@
+/* Theme Settings Panel Styles */
+:root {
+  --primary-color: #4a89dc;
+  --secondary-color: #5d9cec;
+  --text-color: #333;
+  --bg-color: #f5f7fa;
+  --panel-bg: #fff;
+  --border-color: #e6e9ed;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --font-size-base: 16px;
+  --transition-speed: 0.3s;
+}
+
+/* Dark Mode Variables */
+[data-theme="dark"] {
+  --primary-color: #5d9cec;
+  --secondary-color: #4a89dc;
+  --text-color: #f5f7fa;
+  --bg-color: #2c3e50;
+  --panel-bg: #34495e;
+  --border-color: #41546e;
+  --shadow-color: rgba(0, 0, 0, 0.25);
+}
+
+/* Theme Color Variables */
+[data-theme="blue"] {
+  --primary-color: #4a89dc;
+  --secondary-color: #5d9cec;
+}
+
+[data-theme="green"] {
+  --primary-color: #37bc9b;
+  --secondary-color: #48cfad;
+}
+
+[data-theme="purple"] {
+  --primary-color: #967adc;
+  --secondary-color: #ac92ec;
+}
+
+[data-theme="orange"] {
+  --primary-color: #e9573f;
+  --secondary-color: #fc6e51;
+}
+
+[data-theme="teal"] {
+  --primary-color: #3bafda;
+  --secondary-color: #4fc1e9;
+}
+
+/* High Contrast Mode */
+[data-contrast="high"] {
+  --text-color: #000 !important;
+  --bg-color: #fff !important;
+  --border-color: #000 !important;
+}
+
+[data-contrast="high"][data-theme="dark"] {
+  --text-color: #fff !important;
+  --bg-color: #000 !important;
+  --border-color: #fff !important;
+}
+
+/* Main Settings Panel */
+.theme-settings-panel {
+  position: fixed;
+  top: 0;
+  right: -320px;
+  width: 300px;
+  height: 100vh;
+  background-color: var(--panel-bg);
+  box-shadow: -2px 0 8px var(--shadow-color);
+  z-index: 9999;
+  transition: right var(--transition-speed) ease-in-out;
+  overflow-y: auto;
+  padding: 0;
+  color: var(--text-color);
+  border-left: 1px solid var(--border-color);
+}
+
+.theme-settings-panel.open {
+  right: 0;
+}
+
+/* Settings Sections */
+.settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.settings-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.settings-body {
+  padding: 20px;
+}
+
+.settings-footer {
+  padding: 15px 20px;
+  text-align: center;
+  border-top: 1px solid var(--border-color);
+}
+
+/* Settings Options */
+.settings-option {
+  margin-bottom: 20px;
+}
+
+.settings-option > span {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+/* Theme Options */
+.theme-options {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.theme-option {
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.theme-option.active {
+  border-color: var(--text-color);
+}
+
+.color-circle {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+}
+
+.color-circle.blue {
+  background-color: #4a89dc;
+}
+
+.color-circle.green {
+  background-color: #37bc9b;
+}
+
+.color-circle.purple {
+  background-color: #967adc;
+}
+
+.color-circle.orange {
+  background-color: #e9573f;
+}
+
+.color-circle.teal {
+  background-color: #3bafda;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .3s;
+  border-radius: 24px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .3s;
+  border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+  background-color: var(--primary-color);
+}
+
+input:checked + .toggle-slider:before {
+  transform: translateX(26px);
+}
+
+/* Buttons */
+.close-button, 
+.theme-settings-button,
+.contrast-option,
+#increase-font,
+#decrease-font,
+.reset-button {
+  background-color: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.close-button:hover, 
+.theme-settings-button:hover,
+.contrast-option:hover,
+#increase-font:hover,
+#decrease-font:hover,
+.reset-button:hover {
+  background-color: var(--border-color);
+}
+
+.contrast-option.active,
+.theme-settings-button.active {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+/* Font Size Controls */
+.font-size-control {
+  display: flex;
+  align-items: center;
+}
+
+.font-size-buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#font-size-value {
+  min-width: 45px;
+  text-align: center;
+}
+
+/* Contrast Buttons */
+.contrast-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+/* Theme Settings Button */
+.theme-settings-button {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 20px;
+  box-shadow: 0 2px 10px var(--shadow-color);
+  z-index: 999;
+  border: none;
+}
+
+.theme-settings-button:hover {
+  background-color: var(--secondary-color);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+[data-animations="true"] .theme-settings-panel.open {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .theme-settings-panel {
+    width: 280px;
+  }
+}
+
+/* Font size adjustments */
+html[data-font-size="small"] {
+  font-size: 14px;
+}
+
+html[data-font-size="medium"] {
+  font-size: 16px;
+}
+
+html[data-font-size="large"] {
+  font-size: 18px;
+}
+
+html[data-font-size="x-large"] {
+  font-size: 20px;
+}
+
+/* Disable animations */
+[data-animations="false"] * {
+  transition: none !important;
+  animation: none !important;
+} 

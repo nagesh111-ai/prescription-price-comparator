@@ -19,6 +19,7 @@
         {% endwith %}
 
         <form id="reminderForm" method="POST" action="{{ url_for('edit_reminder', id=reminder.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-group">
                 <label for="medicine_name"><i class="fas fa-pills"></i> Medicine Name</label>
                 <input type="text" id="medicine_name" name="medicine_name" required 

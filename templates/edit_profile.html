@@ -19,7 +19,6 @@
 <div class="edit-profile-container">
     <form method="POST" action="{{ url_for('edit_profile') }}" class="edit-profile-form">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        
         <div class="form-section">
             <h3>Personal Information</h3>
             
@@ -65,22 +64,31 @@
         <div class="form-section">
             <h3>Notification Preferences</h3>
             
-            <div class="form-group checkbox-group">
-                <input type="checkbox" id="email_notifications" name="email_notifications" {% if user_prefs.email_notifications %}checked{% endif %}>
-                <label for="email_notifications">Email Notifications</label>
-                <p class="checkbox-description">Receive email notifications for upcoming and missed medications</p>
+            <div class="form-group">
+                <label for="email_notifications" class="toggle-switch">
+                    <input type="checkbox" id="email_notifications" name="email_notifications" {% if user_prefs.email_notifications %}checked{% endif %}>
+                    <span class="slider round"></span>
+                    <span class="toggle-label">Email Notifications</span>
+                </label>
+                <p class="help-text">Receive medication reminders via email</p>
             </div>
             
-            <div class="form-group checkbox-group">
-                <input type="checkbox" id="voice_alerts" name="voice_alerts" {% if user_prefs.voice_alerts %}checked{% endif %}>
-                <label for="voice_alerts">Voice Alerts</label>
-                <p class="checkbox-description">Enable voice reminders when it's time to take your medication</p>
+            <div class="form-group">
+                <label for="voice_alerts" class="toggle-switch">
+                    <input type="checkbox" id="voice_alerts" name="voice_alerts" {% if user_prefs.voice_alerts %}checked{% endif %}>
+                    <span class="slider round"></span>
+                    <span class="toggle-label">Voice Alerts</span>
+                </label>
+                <p class="help-text">Enable voice reminders for medications</p>
             </div>
             
-            <div class="form-group checkbox-group">
-                <input type="checkbox" id="desktop_notifications" name="desktop_notifications" {% if user_prefs.desktop_notifications %}checked{% endif %}>
-                <label for="desktop_notifications">Desktop Notifications</label>
-                <p class="checkbox-description">Receive browser notifications for reminders when you're online</p>
+            <div class="form-group">
+                <label for="desktop_notifications" class="toggle-switch">
+                    <input type="checkbox" id="desktop_notifications" name="desktop_notifications" {% if user_prefs.desktop_notifications %}checked{% endif %}>
+                    <span class="slider round"></span>
+                    <span class="toggle-label">Desktop Notifications</span>
+                </label>
+                <p class="help-text">Enable browser notifications for medication reminders</p>
                 <button type="button" id="test-notification-btn" class="btn small-btn">Test Notification</button>
             </div>
         </div>

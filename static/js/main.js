@@ -1,9 +1,39 @@
 // Add any client-side JavaScript functionality here
 document.addEventListener('DOMContentLoaded', function() {
-    // Form submissions
-    const loginForm = document.getElementById('loginForm');
-    const signupForm = document.getElementById('signupForm');
-    const reminderForm = document.getElementById('reminderForm');
+    // Function to get CSRF token from meta tag or hidden input
+    function getCSRFToken() {
+        // Try to get from meta tag first (best practice)
+        const metaToken = document.querySelector('meta[name="csrf-token"]');
+        if (metaToken) {
+            return metaToken.getAttribute('content');
+        }
+        
+        // Try to get from hidden input field
+        const tokenInput = document.querySelector('input[name="csrf_token"]');
+        if (tokenInput) {
+            return tokenInput.value;
+        }
+        
+        // Return null if not found
+        console.warn('CSRF token not found!');
+        return null;
+    }
+    
+    // Function to create headers with CSRF token
+    function createHeaders(includeXMLRequestedWith = true) {
+        const headers = {};
+        const token = getCSRFToken();
+        
+        if (token) {
+            headers['X-CSRFToken'] = token;
+        }
+        
+        if (includeXMLRequestedWith) {
+            headers['X-Requested-With'] = 'XMLHttpRequest';
+        }
+        
+        return headers;
+    }
     
     // Show error message
     function showError(message, form) {
@@ -65,6 +95,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 3500); // Slightly longer than the animation duration (3s + 0.5s buffer)
     }
     
+    // Form submissions
+    const loginForm = document.getElementById('loginForm');
+    const signupForm = document.getElementById('signupForm');
+    const reminderForm = document.getElementById('reminderForm');
+    
     // Login form submission
     if (loginForm) {
         loginForm.addEventListener('submit', function(e) {
@@ -82,9 +117,7 @@ document.addEventListener('DOMContentLoaded', function() {
             fetch('/login', {
                 method: 'POST',
                 body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
+                headers: createHeaders()
             })
             .then(response => {
                 if (!response.ok) {
@@ -124,9 +157,7 @@ document.addEventListener('DOMContentLoaded', function() {
             fetch('/register', {
                 method: 'POST',
                 body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
+                headers: createHeaders()
             })
             .then(response => {
                 if (!response.ok) {
@@ -763,28 +794,31 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Reminder Management Functions
 function toggleReminder(id) {
-    if (!confirm('Are you sure you want to toggle this reminder?')) {
-        return;
+    const token = document.querySelector('input[name="csrf_token"]');
+    const headers = {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+    };
+    
+    if (token) {
+        headers['X-CSRFToken'] = token.value;
     }
     
     fetch(`/toggle_reminder/${id}`, {
         method: 'POST',
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'Content-Type': 'application/json'
-        }
+        headers: headers
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            window.location.reload();
+            // Refresh the page to reflect changes
+            location.reload();
         } else {
-            alert(data.message || 'An error occurred');
+            console.error(data.message);
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('An error occurred while toggling the reminder');
     });
 }
 
@@ -793,28 +827,35 @@ function editReminder(id) {
 }
 
 function deleteReminder(id) {
-    if (!confirm('Are you sure you want to delete this reminder? This action cannot be undone.')) {
+    if (!confirm('Are you sure you want to delete this reminder?')) {
         return;
+    }
+    
+    const token = document.querySelector('input[name="csrf_token"]');
+    const headers = {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+    };
+    
+    if (token) {
+        headers['X-CSRFToken'] = token.value;
     }
     
     fetch(`/delete_reminder/${id}`, {
         method: 'POST',
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'Content-Type': 'application/json'
-        }
+        headers: headers
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            window.location.reload();
+            // Remove reminder from UI or refresh page
+            location.reload();
         } else {
-            alert(data.message || 'An error occurred');
+            console.error(data.message);
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('An error occurred while deleting the reminder');
     });
 }
 
@@ -1354,4 +1395,104 @@ function playAlertSound(reminder) {
     } catch (error) {
         console.error(`Exception playing sound: ${error.message}`);
     }
+}
+
+// Update this function to include CSRF token
+function snoozeReminder(id, minutes = 5) {
+    const token = document.querySelector('input[name="csrf_token"]');
+    const headers = {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+    };
+    
+    if (token) {
+        headers['X-CSRFToken'] = token.value;
+    }
+    
+    fetch(`/snooze_reminder/${id}`, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({ minutes: minutes })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showSuccess(`Reminder snoozed for ${minutes} minutes`);
+            
+            // You might want to update UI or reload
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
+        } else {
+            showError(data.message || 'Failed to snooze reminder');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showError('Failed to connect to server');
+    });
+}
+
+// Update this function to include CSRF token
+function markReminderTaken(id) {
+    const token = document.querySelector('input[name="csrf_token"]');
+    const headers = {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+    };
+    
+    if (token) {
+        headers['X-CSRFToken'] = token.value;
+    }
+    
+    fetch(`/mark_taken/${id}`, {
+        method: 'POST',
+        headers: headers
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showSuccess('Reminder marked as taken');
+            
+            // Update UI or reload
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
+        } else {
+            showError(data.message || 'Failed to mark reminder as taken');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showError('Failed to connect to server');
+    });
+}
+
+// Update this function to include CSRF token
+function toggleVoiceAlert(id, enabled) {
+    const token = document.querySelector('input[name="csrf_token"]');
+    const headers = {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+    };
+    
+    if (token) {
+        headers['X-CSRFToken'] = token.value;
+    }
+    
+    fetch(`/toggle_voice_alert/${id}`, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({ enabled: enabled })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (!data.success) {
+            showError(data.message || 'Failed to update voice alert settings');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showError('Failed to connect to server');
+    });
 } 

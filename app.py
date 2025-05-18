@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, date, timedelta
+from flask_wtf.csrf import CSRFProtect, CSRFError
 import os
 import time
 import random
@@ -17,6 +18,27 @@ db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
+csrf = CSRFProtect(app)  # Initialize CSRF protection
+
+# Configure CSRF exemption for certain API endpoints
+# These must be specified carefully to avoid security issues
+csrf_exempt_routes = [
+    '/server_time',
+    '/get_active_reminders',
+    '/get_active_reminders_detailed',
+    '/api/price_comparison',
+    '/api/save_price_result'
+]
+
+for route in csrf_exempt_routes:
+    csrf.exempt(route)
+
+# Error handler for CSRF errors to give better feedback
+@app.errorhandler(CSRFError)
+def handle_csrf_error(e):
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify({'success': False, 'message': 'CSRF token missing or invalid'}), 400
+    return render_template('error.html', message='CSRF token missing or invalid. Please try again.'), 400
 
 # User Model
 class User(UserMixin, db.Model):
@@ -27,6 +49,9 @@ class User(UserMixin, db.Model):
     password = db.Column(db.String(200), nullable=False)
     reminders = db.relationship('Reminder', backref='user', lazy=True)
     saved_prices = db.relationship('PharmacyPrice', backref='user', lazy=True)
+    email_notifications = db.Column(db.Boolean, default=True)
+    voice_alerts = db.Column(db.Boolean, default=True)
+    desktop_notifications = db.Column(db.Boolean, default=True)
 
 # Reminder Model
 class Reminder(db.Model):
@@ -230,47 +255,87 @@ def profile():
 @app.route('/edit_profile', methods=['GET', 'POST'])
 @login_required
 def edit_profile():
-    # Mock user preferences - in a real app, these would come from the database
+    # Get actual user preferences from database
     user_prefs = {
-        'email_notifications': True,
-        'voice_alerts': True,
-        'desktop_notifications': True
+        'email_notifications': current_user.email_notifications,
+        'voice_alerts': current_user.voice_alerts,
+        'desktop_notifications': current_user.desktop_notifications
     }
     
     if request.method == 'POST':
-        # Handle form submission to update user profile
-        name = request.form.get('name')
-        email = request.form.get('email')
-        
-        # In a real app, you would validate and update the user's information
-        current_user.name = name
-        current_user.email = email
-        
-        # Check if password change is requested
-        current_password = request.form.get('current_password')
-        new_password = request.form.get('new_password')
-        confirm_password = request.form.get('confirm_password')
-        
-        if current_password and new_password and confirm_password:
-            if not check_password_hash(current_user.password, current_password):
-                flash('Current password is incorrect', 'error')
+        try:
+            # Debug log of form data
+            print("Form data received:", request.form)
+            
+            # Handle form submission to update user profile
+            name = request.form.get('name')
+            email = request.form.get('email')
+            
+            if not name or not email:
+                flash('Name and email are required fields', 'error')
                 return render_template('edit_profile.html', user_prefs=user_prefs)
             
-            if new_password != confirm_password:
-                flash('New passwords do not match', 'error')
-                return render_template('edit_profile.html', user_prefs=user_prefs)
+            # Check if email is already used by another user
+            if email != current_user.email:
+                existing_user = User.query.filter_by(email=email).first()
+                if existing_user:
+                    flash('Email is already in use by another account', 'error')
+                    return render_template('edit_profile.html', user_prefs=user_prefs)
             
-            current_user.password = generate_password_hash(new_password)
-        
-        # Update notification preferences
-        # In a real app, you would save these to the user's preferences in the database
-        # user_prefs.email_notifications = request.form.get('email_notifications') == 'on'
-        # user_prefs.voice_alerts = request.form.get('voice_alerts') == 'on'
-        # user_prefs.desktop_notifications = request.form.get('desktop_notifications') == 'on'
-        
-        db.session.commit()
-        flash('Profile updated successfully', 'success')
-        return redirect(url_for('profile'))
+            # Update user information
+            print(f"Updating user {current_user.id} - Old name: {current_user.name}, New name: {name}")
+            print(f"Updating user {current_user.id} - Old email: {current_user.email}, New email: {email}")
+            
+            current_user.name = name
+            current_user.email = email
+            
+            # Check if password change is requested
+            current_password = request.form.get('current_password')
+            new_password = request.form.get('new_password')
+            confirm_password = request.form.get('confirm_password')
+            
+            if current_password and new_password and confirm_password:
+                print(f"Password change requested for user {current_user.id}")
+                
+                if not check_password_hash(current_user.password, current_password):
+                    flash('Current password is incorrect', 'error')
+                    return render_template('edit_profile.html', user_prefs=user_prefs)
+                
+                if new_password != confirm_password:
+                    flash('New passwords do not match', 'error')
+                    return render_template('edit_profile.html', user_prefs=user_prefs)
+                
+                # Validate password strength
+                if len(new_password) < 8:
+                    flash('Password must be at least 8 characters long', 'error')
+                    return render_template('edit_profile.html', user_prefs=user_prefs)
+                
+                current_user.password = generate_password_hash(new_password)
+                print(f"Password updated for user {current_user.id}")
+            
+            # Update notification preferences
+            email_notifications = request.form.get('email_notifications') == 'on'
+            voice_alerts = request.form.get('voice_alerts') == 'on'
+            desktop_notifications = request.form.get('desktop_notifications') == 'on'
+            
+            print(f"Updating preferences - Email: {email_notifications}, Voice: {voice_alerts}, Desktop: {desktop_notifications}")
+            
+            current_user.email_notifications = email_notifications
+            current_user.voice_alerts = voice_alerts
+            current_user.desktop_notifications = desktop_notifications
+            
+            # Commit changes to database
+            db.session.commit()
+            print(f"Profile successfully updated for user {current_user.id}")
+            flash('Profile updated successfully', 'success')
+            return redirect(url_for('profile'))
+            
+        except Exception as e:
+            # Roll back the transaction in case of error
+            db.session.rollback()
+            print(f"Error updating profile: {str(e)}")
+            flash(f'Error updating profile: {str(e)}', 'error')
+            return render_template('edit_profile.html', user_prefs=user_prefs)
     
     return render_template('edit_profile.html', user_prefs=user_prefs)
 
@@ -873,24 +938,46 @@ def init_db():
         # Create all tables (only if they don't already exist)
         db.create_all()
         
-        # Check if we need to add the next_time column to Reminder table
+        # Check tables for missing columns and add them if needed
         inspector = db.inspect(db.engine)
-        has_next_time = False
         
-        for column in inspector.get_columns('reminder'):
-            if column['name'] == 'next_time':
-                has_next_time = True
-                break
-        
-        if not has_next_time:
+        # Check if we need to add the next_time column to Reminder table
+        reminder_columns = [column['name'] for column in inspector.get_columns('reminder')]
+        if 'next_time' not in reminder_columns:
             # If using SQLite, we need to recreate the table
             # For production apps, use proper migrations with Flask-Migrate
             try:
                 with db.engine.connect() as conn:
                     conn.execute(db.text("ALTER TABLE reminder ADD COLUMN next_time TIMESTAMP"))
                     conn.commit()
+                    print("Added next_time column to reminder table")
             except Exception as e:
                 print(f"Could not add column automatically: {e}")
+                print("Please consider using proper migrations for schema changes")
+        
+        # Check if we need to add notification preference columns to User table
+        user_columns = [column['name'] for column in inspector.get_columns('user')]
+        missing_columns = []
+        
+        if 'email_notifications' not in user_columns:
+            missing_columns.append("email_notifications BOOLEAN DEFAULT 1")
+        
+        if 'voice_alerts' not in user_columns:
+            missing_columns.append("voice_alerts BOOLEAN DEFAULT 1")
+        
+        if 'desktop_notifications' not in user_columns:
+            missing_columns.append("desktop_notifications BOOLEAN DEFAULT 1")
+        
+        # Add missing columns to user table
+        if missing_columns:
+            try:
+                with db.engine.connect() as conn:
+                    for column_def in missing_columns:
+                        conn.execute(db.text(f"ALTER TABLE user ADD COLUMN {column_def}"))
+                    conn.commit()
+                    print(f"Added missing columns to user table: {', '.join(col.split()[0] for col in missing_columns)}")
+            except Exception as e:
+                print(f"Could not add columns automatically: {e}")
                 print("Please consider using proper migrations for schema changes")
         
         print("Database tables initialized successfully!")
